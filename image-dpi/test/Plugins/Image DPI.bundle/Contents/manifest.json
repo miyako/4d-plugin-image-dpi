@@ -1,0 +1,11 @@
+{
+    "name": "Image DPI",
+    "id": 20000,
+    "commands": [
+        {
+            "theme": "Image DPI",
+            "syntax": "Set image DPI(&P;&L):J",
+            "threadSafe": true
+        }
+    ]
+}
