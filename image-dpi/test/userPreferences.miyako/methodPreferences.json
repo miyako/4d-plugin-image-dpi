@@ -198,13 +198,13 @@
 		"stamp": "2020-06-21T09:06:36.473Z"
 	},
 	"Sources/Methods/TEST_PNG.4dm": {
-		"startSelection": 7,
-		"endSelection": 7,
-		"firstSelectedLine": 18,
-		"lastSelectedLine": 18,
+		"startSelection": 0,
+		"endSelection": 0,
+		"firstSelectedLine": 0,
+		"lastSelectedLine": 0,
 		"folding": [],
 		"bookmarks": [],
-		"stamp": "2020-06-21T09:10:01.828Z"
+		"stamp": "2020-06-21T09:10:01.000Z"
 	},
 	"Sources/Methods/TEST_JPEG.4dm": {
 		"startSelection": 34,
@@ -216,12 +216,12 @@
 		"stamp": "2020-06-21T09:05:30.724Z"
 	},
 	"Sources/Methods/TEST_BMP.4dm": {
-		"startSelection": 68,
-		"endSelection": 68,
-		"firstSelectedLine": 6,
-		"lastSelectedLine": 6,
+		"startSelection": 6,
+		"endSelection": 6,
+		"firstSelectedLine": 18,
+		"lastSelectedLine": 18,
 		"folding": [],
 		"bookmarks": [],
-		"stamp": "2020-06-21T09:06:16.544Z"
+		"stamp": "2020-06-21T09:43:28.332Z"
 	}
 }

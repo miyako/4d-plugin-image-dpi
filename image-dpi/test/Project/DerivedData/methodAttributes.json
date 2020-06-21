@@ -36,10 +36,10 @@
 			}
 		},
 		"TEST_JPEG": {
-			"timeStamp": "2020-06-21T09:05:30.724Z"
+			"timeStamp": "2020-06-21T09:05:30.000Z"
 		},
 		"TEST_PNG": {
-			"timeStamp": "2020-06-21T09:10:01.828Z"
+			"timeStamp": "2020-06-21T09:10:01.000Z"
 		},
 		"generate_project": {
 			"timeStamp": "2020-06-20T04:53:44.000Z"
@@ -52,10 +52,10 @@
 			}
 		},
 		"TEST_BMP": {
-			"timeStamp": "2020-06-21T09:06:16.544Z"
+			"timeStamp": "2020-06-21T09:06:16.000Z"
 		},
 		"TEST_TIF": {
-			"timeStamp": "2020-06-21T09:06:36.473Z"
+			"timeStamp": "2020-06-21T09:06:36.000Z"
 		},
 		"generate_project_plugin_stub": {
 			"timeStamp": "2019-07-23T08:36:58.000Z",
