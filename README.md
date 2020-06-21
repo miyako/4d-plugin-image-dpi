@@ -8,7 +8,7 @@ A study on how different image formats store DPI information.
 
 #### PNG
 
-* Copy chunks as per [pngcrush](https://en.wikipedia.org/wiki/Pngcrush), except [tEXt/zTXt/iTXt], which trumps ``pHYs``. When setting the ``pHYs`` chunk, set the unit type to ``PNG_RESOLUTION_METER`` and set the resolution in pixels-per-metre. 
+* Copy chunks as per [pngcrush](https://en.wikipedia.org/wiki/Pngcrush), except ``tEXt`` ``zTXt`` ``iTXt``, which trumps ``pHYs``. When setting the ``pHYs`` chunk, set the unit type to ``PNG_RESOLUTION_METER`` and set the resolution in pixels-per-metre. 
 
 #### JPEG
 
@@ -17,3 +17,5 @@ A study on how different image formats store DPI information.
 #### TIFF
 
 * Copy tags as per [tiffcp](http://www.libtiff.org/man/tiffcp.1.html). ``TIFFSetField`` the field ``TIFFTAG_RESOLUTIONUNIT`` to ``RESUNIT_INCH``, ``TIFFTAG_XRESOLUTION`` and ``TIFFTAG_YRESOLUTION`` in inches. Make sure to use ``float``.
+
+**TODO**: Would be nice to preserve ``tEXt`` ``zTXt`` ``iTXt`` tags for PNG, ``IPTC_JPEG_MARKER`` marker for JPEG.
