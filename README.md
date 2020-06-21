@@ -18,4 +18,4 @@ A study on how different image formats store DPI information.
 
 * Copy tags as per [tiffcp](http://www.libtiff.org/man/tiffcp.1.html). ``TIFFSetField`` the field ``TIFFTAG_RESOLUTIONUNIT`` to ``RESUNIT_INCH``, set ``TIFFTAG_XRESOLUTION`` and ``TIFFTAG_YRESOLUTION`` to **DPI**. Make sure to use ``float``.
 
-**TODO**: Would be nice to preserve ``tEXt`` ``zTXt`` ``iTXt`` tags for PNG, ``IPTC_JPEG_MARKER`` marker for JPEG.
+**TODO**: Would be nice to preserve ``tEXt`` ``zTXt`` ``iTXt`` tags for PNG, ``IPTC_JPEG_MARKER`` marker for JPEG without contradicting the DPI information set using the method above.
