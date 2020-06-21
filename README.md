@@ -16,4 +16,4 @@ A study on how different image formats store DPI information.
 
 #### TIFF
 
-* ``TIFFSetField`` the field ``TIFFTAG_RESOLUTIONUNIT`` to ``RESUNIT_INCH``, ``TIFFTAG_XRESOLUTION`` and ``TIFFTAG_YRESOLUTION`` in inches. Make sure to use ``float``.
+* Copy tags as per [tiffcp](http://www.libtiff.org/man/tiffcp.1.html). ``TIFFSetField`` the field ``TIFFTAG_RESOLUTIONUNIT`` to ``RESUNIT_INCH``, ``TIFFTAG_XRESOLUTION`` and ``TIFFTAG_YRESOLUTION`` in inches. Make sure to use ``float``.
