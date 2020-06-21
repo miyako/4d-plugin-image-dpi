@@ -1,16 +1,1 @@
-﻿[
-	{
-		"line": 7,
-		"method": {
-			"type": 1,
-			"methodName": "TEST_PNG"
-		}
-	},
-	{
-		"line": 7,
-		"method": {
-			"type": 1,
-			"methodName": "TEST_JPEG"
-		}
-	}
-]
+﻿[]

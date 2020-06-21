@@ -157,20 +157,26 @@
 	},
 	"Sources/Methods/TEST_TIF.4dm": {
 		"left": 352,
+		"top": 469,
+		"width": 975,
+		"height": 457
+	},
+	"Sources/Methods/TEST_PNG.4dm": {
+		"left": 352,
 		"top": 443,
 		"width": 975,
 		"height": 483
 	},
-	"Sources/Methods/TEST_PNG.4dm": {
-		"left": 352,
-		"top": 417,
-		"width": 975,
-		"height": 509
-	},
 	"Sources/Methods/TEST_JPEG.4dm": {
 		"left": 352,
-		"top": 417,
+		"top": 469,
 		"width": 975,
-		"height": 509
+		"height": 457
+	},
+	"Sources/Methods/TEST_BMP.4dm": {
+		"left": 352,
+		"top": 469,
+		"width": 975,
+		"height": 457
 	}
 }

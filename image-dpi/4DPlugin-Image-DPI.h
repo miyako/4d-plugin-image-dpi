@@ -35,6 +35,14 @@ typedef struct
     toff_t pos;
 } tiff_dst;
 
+typedef struct {
+    
+    unsigned char *ptr;
+    PA_long32 pos;
+    PA_long32 len;
+    
+}pa_handle_t;
+
 #pragma mark -
 
 void Set_image_DPI(PA_PluginParameters params);

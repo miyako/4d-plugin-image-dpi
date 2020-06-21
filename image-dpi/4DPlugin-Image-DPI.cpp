@@ -1655,14 +1655,6 @@ int tiffcpy(TIFF* in, TIFF* out, float dpi) {
 
 #pragma mark PNG
 
-typedef struct {
-    
-    unsigned char *ptr;
-    PA_long32 pos;
-    PA_long32 len;
-    
-}pa_handle_t;
-
 void read_data_fn(png_structp png_ptr, png_bytep buf, png_size_t size)
 {
     pa_handle_t *pa_handle = (pa_handle_t *)png_get_io_ptr(png_ptr);
@@ -1818,18 +1810,18 @@ void write_dpi(struct jpeg_decompress_struct *dinfo,
             mrk->data[3] == 0x46 &&
             mrk->data[4] == 0x00 ) {
             
-            /* JFIF_major_version */
-            /* JFIF_minor_version */
+            std::vector<unsigned char>_buf(mrk->data_length);
+            memcpy(&_buf[0], mrk->data, mrk->data_length);
             
-            mrk->data[ 7]  = 0x01;/*  density_unit */
+            _buf[0x7]  = 1;/*  density_unit */
             
             UINT16 X_density = (UINT16)dpi;
             UINT16 Y_density = (UINT16)dpi;
             
-            memcpy(&mrk->data[ 8], &X_density, sizeof(X_density));
-            memcpy(&mrk->data[10], &Y_density, sizeof(Y_density));
+            memcpy(&_buf[0x9], &X_density, sizeof(X_density));
+            memcpy(&_buf[0xb], &Y_density, sizeof(Y_density));
             
-            jpeg_write_marker(cinfo,mrk->marker,mrk->data,mrk->data_length);
+            jpeg_write_marker(cinfo, JPEG_APP0, &_buf[0], (unsigned int)_buf.size());
             
             break;
         }
@@ -1841,8 +1833,7 @@ void write_dpi(struct jpeg_decompress_struct *dinfo,
 
 
 void write_markers(struct jpeg_decompress_struct *dinfo,
-                   struct jpeg_compress_struct *cinfo,
-                   float dpi) {
+                   struct jpeg_compress_struct *cinfo) {
     
     jpeg_saved_marker_ptr mrk;
     
@@ -1858,8 +1849,9 @@ void write_markers(struct jpeg_decompress_struct *dinfo,
         if (mrk->marker == JPEG_COM)
             write_marker++;
         
+        //this marker contains resolution information that trumps JFIF APP0
         if (mrk->marker == IPTC_JPEG_MARKER)
-            write_marker++;
+//            write_marker++;
         
         if (mrk->marker == EXIF_JPEG_MARKER &&
                 !memcmp(mrk->data,EXIF_IDENT_STRING,EXIF_IDENT_STRING_SIZE))
@@ -1881,16 +1873,7 @@ void write_markers(struct jpeg_decompress_struct *dinfo,
             mrk->data[2] == 0x49 &&
             mrk->data[3] == 0x46 &&
             mrk->data[4] == 0x00 ) {
-            
-            mrk->data[7]  = 0x01; /*  density_unit */
-            
-            UINT16 X_density = (UINT16)dpi;
-            UINT16 Y_density = (UINT16)dpi;
-            
-            memcpy(&mrk->data[ 8], &X_density, sizeof(X_density));
-            memcpy(&mrk->data[10], &Y_density, sizeof(Y_density));
-            
-            write_marker++;
+            write_marker = 0;
         }
 
         if ( mrk->marker == JPEG_APP0+14 && mrk->data_length >= 12 &&
@@ -1899,8 +1882,7 @@ void write_markers(struct jpeg_decompress_struct *dinfo,
                 mrk->data[2] == 0x6f &&
                 mrk->data[3] == 0x62 &&
             mrk->data[4] == 0x65 ) {
-            
-            write_marker++;
+            write_marker = 0;
         }
             
         if (write_marker)
@@ -1915,6 +1897,49 @@ void write_markers(struct jpeg_decompress_struct *dinfo,
   for (j=0;j<lines;j++) free(buf[j]);                \
   free(buf);                            \
   buf=NULL;                            \
+}
+
+/* read n-byte little-endian integer. Return 1 on EOF or error, else 0. Assume n<=4. */
+int bmp_readint(pa_handle_t *pa_handle,
+                int *pos, size_t len, unsigned int *p) {
+
+    unsigned int start = *pos;
+    unsigned int sum = 0;
+    
+    if((start + len) > pa_handle->len) return 1;
+
+    unsigned char *_ptr = pa_handle->ptr + start;
+    
+    for (unsigned int i = 0; i < len; ++i) {
+        unsigned char byte = _ptr[i];
+        sum += byte << (8 * i);
+    }
+
+    *pos += len;
+    
+    *p = sum;
+
+    return 0;
+}
+
+int bmp_writeint(pa_handle_t *pa_handle,
+                int *pos, size_t len, unsigned int p) {
+
+    unsigned int start = *pos;
+    
+    if((start + len) > pa_handle->len) return 1;
+
+    unsigned char *_ptr = pa_handle->ptr + start;
+    
+    for (unsigned int i = 0; i < len; ++i) {
+        unsigned char byte = p & 0xFF;
+        _ptr[i] = byte;
+        p = p >> 8;
+    }
+
+    *pos += len;
+    
+    return 0;
 }
 
 void Set_image_DPI(PA_PluginParameters params) {
@@ -2030,13 +2055,17 @@ void Set_image_DPI(PA_PluginParameters params) {
                                 cinfo.image_width=dinfo.image_width;
                                 cinfo.image_height=dinfo.image_height;
                                 jpeg_set_defaults(&cinfo);
+                                
+                                cinfo.write_JFIF_header = _false;/* done manually in write_dpi */
                                 jpeg_set_quality(&cinfo, 100, _true);
+                                
                                 jpeg_simple_progression(&cinfo);
                                 cinfo.optimize_coding = _true;
                                 jpeg_start_compress(&cinfo,_true);
                             }
 
-                            write_markers(&dinfo,&cinfo, dpi);
+                            write_markers(&dinfo,&cinfo);
+                            write_dpi(&dinfo,&cinfo, dpi);
                             
                             if(coef_arrays) {
                                 jpeg_write_coefficients(&cinfo, coef_arrays);
@@ -2129,7 +2158,7 @@ void Set_image_DPI(PA_PluginParameters params) {
                                                 if (png_get_bKGD(png_ptr_in, info_ptr_in, &background)) {
                                                     png_set_bKGD(png_ptr_out, info_ptr_out, background);
                                                 }
-                                                
+                                                 
                                                 //----------------[cHRM]
                                                 png_fixed_point white_x, white_y, red_x, red_y,
                                                 green_x, green_y, blue_x, blue_y;
@@ -2144,13 +2173,12 @@ void Set_image_DPI(PA_PluginParameters params) {
                                                                        green_x, green_y,
                                                                        blue_x, blue_y);
                                                 }
-
                                                 //----------------[gAMA]
                                                 png_fixed_point file_gamma;
                                                 if (png_get_gAMA_fixed(png_ptr_in, info_ptr_in, &file_gamma)) {
                                                     png_set_gAMA_fixed(png_ptr_out, info_ptr_out, file_gamma);
                                                 }
-                                                
+                                                 
                                                 //----------------[sRGB]
                                                 int file_intent;
                                                 if (png_get_sRGB(png_ptr_in, info_ptr_in, &file_intent)) {
@@ -2172,7 +2200,7 @@ void Set_image_DPI(PA_PluginParameters params) {
                                                                      (png_const_bytep)profile,
                                                                      (png_uint_32)proflen);
                                                 }
-                                                
+                                                 
                                                 //----------------[oFFs]
                                                 png_charp purpose, units;
                                                 png_charpp params;
@@ -2186,7 +2214,7 @@ void Set_image_DPI(PA_PluginParameters params) {
                                                                  type, nparams,
                                                                  units, params);
                                                 }
-  
+                                                 
                                                 //----------------[pHYs]
                                                 png_uint_32 res_x, res_y;
                                                 int unit_type;
@@ -2202,7 +2230,7 @@ void Set_image_DPI(PA_PluginParameters params) {
                                                 if (png_get_hIST(png_ptr_in, info_ptr_in, &hist)) {
                                                         png_set_hIST(png_ptr_out, info_ptr_out, hist);
                                                 }
-                                                
+                                                 
                                                 //----------------[tRNS]
                                                 png_bytep trans;
                                                 int num_trans;
@@ -2211,20 +2239,20 @@ void Set_image_DPI(PA_PluginParameters params) {
                                                                  &trans, &num_trans, &trans_values)) {
                                                     png_set_tRNS(png_ptr_out, info_ptr_out, trans, num_trans, trans_values);
                                                 }
-                                                
+                                                 
                                                 //----------------[PLTE]
                                                 int num_palette = 0;
                                                 png_colorp palette;
                                                 if (png_get_PLTE(png_ptr_in, info_ptr_in, &palette, &num_palette)) {
                                                     png_set_PLTE(png_ptr_out, info_ptr_out, palette, num_palette);
                                                 }
-                                                
+                                                 
                                                 //----------------[sBIT]
                                                 png_color_8p sig_bit;
                                                 if (png_get_sBIT(png_ptr_in, info_ptr_in, &sig_bit)) {
                                                     png_set_sBIT(png_ptr_out, info_ptr_out, sig_bit);
                                                 }
-                                                
+                                                 
                                                 //----------------[sCAL]
                                                 int unit;
                                                 double scal_width, scal_height;
@@ -2232,21 +2260,22 @@ void Set_image_DPI(PA_PluginParameters params) {
                                                      &scal_height)) {
                                                     png_set_sCAL(png_ptr_out, info_ptr_out, unit, scal_width, scal_height);
                                                 }
-
+                                                 
                                                 //----------------[sPLT]
                                                 png_sPLT_tp entries;
                                                 int num_entries = (int) png_get_sPLT(png_ptr_in, info_ptr_in, &entries);
                                                 if (num_entries) {
                                                     png_set_sPLT(png_ptr_out, info_ptr_out, entries, num_entries);
                                                 }
-
-                                                //----------------[tEXt/zTXt/iTXt]
+                                                 
+                                                //----------------[tEXt/zTXt/iTXt] this can trump pHYs
+                                                /*
                                                 png_textp text_ptr;
                                                 int num_text = 0;
                                                 if (png_get_text(png_ptr_in, info_ptr_in, &text_ptr, &num_text) > 0) {
                                                     png_set_text(png_ptr_out, info_ptr_out, text_ptr, num_text);
                                                 }
-
+                                                 */
                                                 //----------------[tIME]
                                                 png_timep mod_time;
                                                 if (png_get_tIME(png_ptr_in, info_ptr_in, &mod_time)) {
@@ -2275,7 +2304,146 @@ void Set_image_DPI(PA_PluginParameters params) {
                     }
                             
                     if(is_image_format(&type, "image/bmp")) {
-                        
+                                                
+                        if (len >= 16/* BITMAPFILEHEADER */){
+                         
+                            unsigned int bfType;
+                            unsigned int bfSize;
+                            unsigned int bfOffBits;
+                            
+                            pa_handle_t pa_handle;
+                            pa_handle.len = len;
+                            pa_handle.ptr = (unsigned char *)ptr;
+                            pa_handle.pos = 0;
+                            
+                            int bmp_pos = 0;   /* set file position */
+                            
+                            if(0 == bmp_readint(&pa_handle,
+                                                &bmp_pos,
+                                                2,
+                                                &bfType)) {
+                                if(bfType == 19778/* BM */) {
+                                    if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        4,
+                                                        &bfSize)) {
+                                        if(bfSize == pa_handle.len) {
+                                            bmp_pos+=4;/* bfReserved1, bfReserved2 */;
+                                            if(0 == bmp_readint(&pa_handle,
+                                                                &bmp_pos,
+                                                                4,
+                                                                &bfOffBits)) {
+                                                unsigned int biSize;
+                                                if(0 == bmp_readint(&pa_handle,
+                                                &bmp_pos,
+                                                4,
+                                                &biSize)) {
+                                                    unsigned int biWidth;
+                                                    unsigned int biHeight;
+                                                    unsigned int biPlanes;
+                                                    unsigned int biBitCount;
+                                                    unsigned int biCompression = 0;
+                                                    unsigned int biSizeImage = 0;
+                                                    
+                                                    if (   biSize == 40  /* BITMAPINFOHEADER */
+                                                        || biSize == 64  /* OS22XBITMAPHEADER */
+                                                        || biSize == 108 /* BITMAPV4HEADER */
+                                                        || biSize == 124 /* BITMAPV5HEADER */)
+                                                    {
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        4,
+                                                        &biWidth)) {
+                                                            
+                                                        }
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        4,
+                                                        &biHeight)) {
+                                                            if (biHeight > 0x7fffffff)
+                                                            {
+                                                                biHeight = (-biHeight) & 0xffffffff;
+                                                            }
+                                                        }
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        2,
+                                                        &biPlanes)) {
+                                                            
+                                                        }
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        2,
+                                                        &biBitCount)) {
+                                                            
+                                                        }
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        4,
+                                                        &biCompression)) {
+                                                            
+                                                        }
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        4,
+                                                        &biSizeImage)) {
+                                                            
+                                                        }
+
+                                                        if(0 == bmp_writeint(&pa_handle,
+                                                        &bmp_pos,
+                                                        4,
+                                                        (unsigned int)(dpi / .0254 + 0.5))) {
+                                                            
+                                                        }
+                                                        if(0 == bmp_writeint(&pa_handle,
+                                                        &bmp_pos,
+                                                        4,
+                                                        (unsigned int)(dpi / .0254 + 0.5))) {
+                                                            
+                                                            PA_Picture p = PA_CreatePicture((void *)ptr, (PA_long32)len);
+                                                            
+                                                            ob_set_p(format, L"image", p);
+                                                            ob_set_b(returnValue, L"success", true);
+                                                            
+                                                        }
+                                                    }
+                                                    if(    biSize == 12 /* BITMAPCOREHEADER */) {
+                                                        
+                                                        /* dpi not supported; TODO: convert to new BMP */
+                                                        
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        2,
+                                                        &biWidth)) {
+                                                            
+                                                        }
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        2,
+                                                        &biHeight)) {
+                                                            
+                                                        }
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        2,
+                                                        &biPlanes)) {
+                                                            
+                                                        }
+                                                        if(0 == bmp_readint(&pa_handle,
+                                                        &bmp_pos,
+                                                        2,
+                                                        &biBitCount)) {
+                                                            
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
             
                     if(is_image_format(&type, "image/tiff")) {

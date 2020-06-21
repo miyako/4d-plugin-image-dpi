@@ -5,7 +5,7 @@ READ PICTURE FILE:C678($file.platformPath;$image)
 
 CONVERT PICTURE:C1002($image;".jpeg")
 
-$status:=Set image DPI ($image;1200)
+$status:=Set image DPI ($image;150)  //OK
 
 If ($status.success)
 	
