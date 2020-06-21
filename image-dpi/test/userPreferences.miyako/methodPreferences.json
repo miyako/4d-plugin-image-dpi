@@ -170,15 +170,6 @@
 		"bookmarks": [],
 		"stamp": "2019-07-02T23:15:40.975Z"
 	},
-	"Sources/Methods/TEST.4dm": {
-		"startSelection": 7,
-		"endSelection": 7,
-		"firstSelectedLine": 16,
-		"lastSelectedLine": 16,
-		"folding": [],
-		"bookmarks": [],
-		"stamp": "2020-06-20T07:43:48.377Z"
-	},
 	"Sources/Methods/TEST_v17.4dm": {
 		"startSelection": 0,
 		"endSelection": 0,
@@ -196,5 +187,32 @@
 		"folding": [],
 		"bookmarks": [],
 		"stamp": "2019-12-13T04:37:40.619Z"
+	},
+	"Sources/Methods/TEST_TIF.4dm": {
+		"startSelection": 0,
+		"endSelection": 0,
+		"firstSelectedLine": 0,
+		"lastSelectedLine": 0,
+		"folding": [],
+		"bookmarks": [],
+		"stamp": "2020-06-20T07:43:48.000Z"
+	},
+	"Sources/Methods/TEST_PNG.4dm": {
+		"startSelection": 0,
+		"endSelection": 0,
+		"firstSelectedLine": 5,
+		"lastSelectedLine": 5,
+		"folding": [],
+		"bookmarks": [],
+		"stamp": "2020-06-21T00:09:48.013Z"
+	},
+	"Sources/Methods/TEST_JPEG.4dm": {
+		"startSelection": 71,
+		"endSelection": 71,
+		"firstSelectedLine": 12,
+		"lastSelectedLine": 12,
+		"folding": [],
+		"bookmarks": [],
+		"stamp": "2020-06-21T01:31:27.443Z"
 	}
 }

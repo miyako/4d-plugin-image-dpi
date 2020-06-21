@@ -26,6 +26,9 @@
 		D1ADD6FE249DD7E6005F7A19 /* libtiff.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D1ADD6FD249DD7E6005F7A19 /* libtiff.a */; };
 		D1ADD700249DDBE0005F7A19 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D1ADD6FF249DDBE0005F7A19 /* libjpeg.a */; };
 		D1ADD702249DDBF3005F7A19 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D1ADD701249DDBF3005F7A19 /* libz.tbd */; };
+		D1ADD704249EC8C1005F7A19 /* libpng16.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D1ADD703249EC8C1005F7A19 /* libpng16.a */; };
+		D1ADD707249EC8F0005F7A19 /* C_BLOB.h in Headers */ = {isa = PBXBuildFile; fileRef = D1ADD705249EC8F0005F7A19 /* C_BLOB.h */; };
+		D1ADD708249EC8F0005F7A19 /* C_BLOB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1ADD706249EC8F0005F7A19 /* C_BLOB.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -64,6 +67,9 @@
 		D1ADD6FD249DD7E6005F7A19 /* libtiff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiff.a; path = a/libtiff.a; sourceTree = "<group>"; };
 		D1ADD6FF249DDBE0005F7A19 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = a/libjpeg.a; sourceTree = "<group>"; };
 		D1ADD701249DDBF3005F7A19 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		D1ADD703249EC8C1005F7A19 /* libpng16.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng16.a; path = a/libpng16.a; sourceTree = "<group>"; };
+		D1ADD705249EC8F0005F7A19 /* C_BLOB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = C_BLOB.h; path = "4D Plugin API/Classes/C_BLOB.h"; sourceTree = "<group>"; };
+		D1ADD706249EC8F0005F7A19 /* C_BLOB.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = C_BLOB.cpp; path = "4D Plugin API/Classes/C_BLOB.cpp"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +77,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1ADD704249EC8C1005F7A19 /* libpng16.a in Frameworks */,
 				D1ADD702249DDBF3005F7A19 /* libz.tbd in Frameworks */,
 				D1ADD700249DDBE0005F7A19 /* libjpeg.a in Frameworks */,
 				D1ADD6FE249DD7E6005F7A19 /* libtiff.a in Frameworks */,
@@ -84,6 +91,8 @@
 		089C166AFE841209C02AAC07 /* Image DPI */ = {
 			isa = PBXGroup;
 			children = (
+				D1ADD706249EC8F0005F7A19 /* C_BLOB.cpp */,
+				D1ADD705249EC8F0005F7A19 /* C_BLOB.h */,
 				D1ADD6F8249DD169005F7A19 /* C_TEXT.cpp */,
 				D1ADD6F7249DD169005F7A19 /* C_TEXT.h */,
 				D1ADD6F9249DD169005F7A19 /* C_TYPES.h */,
@@ -159,6 +168,7 @@
 		D16FBB3C22A4C07E008F0416 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D1ADD703249EC8C1005F7A19 /* libpng16.a */,
 				D1ADD701249DDBF3005F7A19 /* libz.tbd */,
 				D1ADD6FF249DDBE0005F7A19 /* libjpeg.a */,
 				D1ADD6FD249DD7E6005F7A19 /* libtiff.a */,
@@ -176,6 +186,7 @@
 				18B684F706944F2000CC6A1E /* 4DPluginAPI.h in Headers */,
 				18B684F806944F2000CC6A1E /* EntryPoints.h in Headers */,
 				18B684F906944F2000CC6A1E /* Flags.h in Headers */,
+				D1ADD707249EC8F0005F7A19 /* C_BLOB.h in Headers */,
 				18B684FA06944F2000CC6A1E /* PrivateTypes.h in Headers */,
 				18B684FB06944F2000CC6A1E /* PublicTypes.h in Headers */,
 				D1ADD6FC249DD169005F7A19 /* C_TYPES.h in Headers */,
@@ -289,6 +300,7 @@
 				18B684FF06944F8800CC6A1E /* 4DPlugin-Image-DPI.cpp in Sources */,
 				D1ADD6F6249DCEEA005F7A19 /* 4DPlugin-JSON.cpp in Sources */,
 				D1ADD6FB249DD169005F7A19 /* C_TEXT.cpp in Sources */,
+				D1ADD708249EC8F0005F7A19 /* C_BLOB.cpp in Sources */,
 				D13116A91A03ACB700DE1322 /* 4DPluginAPI.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -343,6 +355,7 @@
 					"$(PROJECT_DIR)/a",
 				);
 				LIBRARY_STYLE = Bundle;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
@@ -394,6 +407,7 @@
 					"$(PROJECT_DIR)/a",
 				);
 				LIBRARY_STYLE = Bundle;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
@@ -443,6 +457,7 @@
 					"$(PROJECT_DIR)/a",
 				);
 				LIBRARY_STYLE = Bundle;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";

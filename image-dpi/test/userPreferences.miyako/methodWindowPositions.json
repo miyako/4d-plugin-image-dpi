@@ -143,12 +143,6 @@
 		"width": 1129,
 		"height": 762
 	},
-	"Sources/Methods/TEST.4dm": {
-		"left": 352,
-		"top": 417,
-		"width": 975,
-		"height": 509
-	},
 	"Sources/Methods/TEST_v17.4dm": {
 		"left": 450,
 		"top": 163,
@@ -160,5 +154,23 @@
 		"top": 458,
 		"width": 1129,
 		"height": 787
+	},
+	"Sources/Methods/TEST_TIF.4dm": {
+		"left": 352,
+		"top": 443,
+		"width": 975,
+		"height": 483
+	},
+	"Sources/Methods/TEST_PNG.4dm": {
+		"left": 352,
+		"top": 417,
+		"width": 975,
+		"height": 509
+	},
+	"Sources/Methods/TEST_JPEG.4dm": {
+		"left": 352,
+		"top": 417,
+		"width": 975,
+		"height": 509
 	}
 }

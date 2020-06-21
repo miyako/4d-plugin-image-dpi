@@ -22,7 +22,7 @@
 			}
 		},
 		"update_manifest_json": {
-			"timeStamp": "2019-12-13T04:37:40.619Z",
+			"timeStamp": "2019-12-13T04:37:40.000Z",
 			"attributes": {
 				"invisible": true,
 				"preemptive": "capable"
@@ -35,11 +35,14 @@
 				"preemptive": "capable"
 			}
 		},
-		"TEST": {
-			"timeStamp": "2020-06-20T07:43:08.970Z"
+		"TEST_JPEG": {
+			"timeStamp": "2020-06-21T01:31:27.443Z"
+		},
+		"TEST_PNG": {
+			"timeStamp": "2020-06-21T00:09:48.013Z"
 		},
 		"generate_project": {
-			"timeStamp": "2020-06-20T04:53:44.906Z"
+			"timeStamp": "2020-06-20T04:53:44.000Z"
 		},
 		"generate_project_vs": {
 			"timeStamp": "2019-07-24T08:49:03.000Z",
@@ -47,6 +50,9 @@
 				"invisible": true,
 				"preemptive": "capable"
 			}
+		},
+		"TEST_TIF": {
+			"timeStamp": "2020-06-20T07:43:48.000Z"
 		},
 		"generate_project_plugin_stub": {
 			"timeStamp": "2019-07-23T08:36:58.000Z",

@@ -14,7 +14,13 @@
 #include "4DPluginAPI.h"
 #include "4DPlugin-JSON.h"
 #include "C_TEXT.h"
-#include "tiffio.h"
+#include "C_BLOB.h"
+
+extern "C" {
+    #include "libpng16/png.h"
+    #include "jpeglib/jpeglib.h"
+    #include "tiffio.h"
+}
 
 typedef struct
 {

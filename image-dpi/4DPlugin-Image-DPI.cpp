@@ -1653,6 +1653,270 @@ int tiffcpy(TIFF* in, TIFF* out, float dpi) {
     return (cf ? (*cf)(in, out, length, width, samplesperpixel) : FALSE);
 }
 
+#pragma mark PNG
+
+typedef struct {
+    
+    unsigned char *ptr;
+    PA_long32 pos;
+    PA_long32 len;
+    
+}pa_handle_t;
+
+void read_data_fn(png_structp png_ptr, png_bytep buf, png_size_t size)
+{
+    pa_handle_t *pa_handle = (pa_handle_t *)png_get_io_ptr(png_ptr);
+    
+    size_t pos = pa_handle->pos;
+    
+    if((pos + size) <= pa_handle->len){
+        memcpy(buf, (const void *)&pa_handle->ptr[pos], size);
+        pa_handle->pos += size;
+    }
+}
+
+
+void write_data_fn(png_structp png_ptr, png_bytep buf, png_size_t size)
+{
+    C_BLOB *blob = (C_BLOB *)png_get_io_ptr(png_ptr);
+    blob->addBytes((const uint8_t *)buf, (uint32_t)size);
+}
+
+void output_flush_fn(png_structp png_ptr)
+{
+    
+}
+
+struct my_error_mgr
+{
+    struct jpeg_error_mgr pub;
+    jmp_buf setjmp_buffer;
+    int     jump_set;
+};
+
+typedef struct my_error_mgr * my_error_ptr;
+
+typedef struct {
+    struct jpeg_destination_mgr pub; /* public fields */
+    
+    unsigned char **buf_ptr;
+    size_t *bufsize_ptr;
+    size_t incsize;
+    
+    unsigned char *buf;
+    size_t bufsize;
+    
+} jpeg_memory_destination_mgr;
+
+void my_error_exit (j_common_ptr cinfo)
+{
+
+}
+
+void my_output_message (j_common_ptr cinfo)
+{
+
+}
+
+typedef jpeg_memory_destination_mgr* jpeg_memory_destination_ptr;
+
+void jpeg_memory_init_destination (j_compress_ptr cinfo)
+{
+    jpeg_memory_destination_ptr dest = (jpeg_memory_destination_ptr) cinfo->dest;
+    dest->pub.next_output_byte = dest->buf;
+    dest->pub.free_in_buffer = dest->bufsize;
+}
+
+#if VERSIONWIN
+#define _false FALSE
+#define _true TRUE
+#endif
+
+boolean jpeg_memory_empty_output_buffer (j_compress_ptr cinfo)
+{
+    jpeg_memory_destination_ptr dest = (jpeg_memory_destination_ptr) cinfo->dest;
+    unsigned char *newbuf;
+    /* abort if incsize is 0 (no expansion of buffer allowed) */
+    if (dest->incsize == 0) return _false;
+    /* otherwise, try expanding buffer... */
+    newbuf = (unsigned char *)realloc(dest->buf,dest->bufsize + dest->incsize);
+    if (!newbuf) return _false;
+    dest->pub.next_output_byte = newbuf + dest->bufsize;
+    dest->pub.free_in_buffer = dest->incsize;
+    dest->buf = newbuf;
+    dest->bufsize += dest->incsize;
+    dest->incsize *= 2;
+    return _true;
+}
+
+void jpeg_memory_term_destination (j_compress_ptr cinfo)
+{
+    jpeg_memory_destination_ptr dest = (jpeg_memory_destination_ptr) cinfo->dest;
+    *dest->buf_ptr = dest->buf;
+    *dest->bufsize_ptr = dest->bufsize - dest->pub.free_in_buffer;
+}
+
+void jpeg_memory_dest (j_compress_ptr cinfo, unsigned char **bufptr, size_t *bufsizeptr, size_t incsize)
+{
+    jpeg_memory_destination_ptr dest;
+    
+    /* allocate destination manager object for compress object, if needed */
+    if (!cinfo->dest) {
+        cinfo->dest = (struct jpeg_destination_mgr *)
+        (*cinfo->mem->alloc_small) ( (j_common_ptr) cinfo,
+                                                                JPOOL_PERMANENT,
+                                                                sizeof(jpeg_memory_destination_mgr) );
+    }
+    
+    dest = (jpeg_memory_destination_ptr)cinfo->dest;
+    
+    dest->buf_ptr = bufptr;
+    dest->buf = *bufptr;
+    dest->bufsize_ptr = bufsizeptr;
+    dest->bufsize = *bufsizeptr;
+    dest->incsize = incsize;
+    
+    dest->pub.init_destination = jpeg_memory_init_destination;
+    dest->pub.empty_output_buffer = jpeg_memory_empty_output_buffer;
+    dest->pub.term_destination = jpeg_memory_term_destination;
+}
+
+#define JPEG_STRIP_XMP 1
+#define JPEG_STRIP_ICC 2
+#define JPEG_STRIP_IPTC 4
+#define JPEG_STRIP_EXIF 8
+#define JPEG_STRIP_COM 16
+
+#define EXIF_JPEG_MARKER   JPEG_APP0+1
+#define EXIF_IDENT_STRING  "Exif\000\000"
+#define EXIF_IDENT_STRING_SIZE 6
+
+#define IPTC_JPEG_MARKER   JPEG_APP0+13
+
+#define ICC_JPEG_MARKER   JPEG_APP0+2
+#define ICC_IDENT_STRING  "ICC_PROFILE\0"
+#define ICC_IDENT_STRING_SIZE 12
+
+#define XMP_JPEG_MARKER   JPEG_APP0+1
+#define XMP_IDENT_STRING  "http://ns.adobe.com/xap/1.0/\000"
+#define XMP_IDENT_STRING_SIZE 29
+
+void write_dpi(struct jpeg_decompress_struct *dinfo,
+                   struct jpeg_compress_struct *cinfo,
+                   float dpi) {
+    
+    jpeg_saved_marker_ptr mrk;
+
+    mrk=dinfo->marker_list;
+    while (mrk)
+    {
+        /* JFIF (APP0) marker */
+        if ( mrk->marker == JPEG_APP0 && mrk->data_length >= 14 &&
+            mrk->data[0] == 0x4a &&
+            mrk->data[1] == 0x46 &&
+            mrk->data[2] == 0x49 &&
+            mrk->data[3] == 0x46 &&
+            mrk->data[4] == 0x00 ) {
+            
+            /* JFIF_major_version */
+            /* JFIF_minor_version */
+            
+            mrk->data[ 7]  = 0x01;/*  density_unit */
+            
+            UINT16 X_density = (UINT16)dpi;
+            UINT16 Y_density = (UINT16)dpi;
+            
+            memcpy(&mrk->data[ 8], &X_density, sizeof(X_density));
+            memcpy(&mrk->data[10], &Y_density, sizeof(Y_density));
+            
+            jpeg_write_marker(cinfo,mrk->marker,mrk->data,mrk->data_length);
+            
+            break;
+        }
+
+        
+        mrk=mrk->next;
+    }
+}
+
+
+void write_markers(struct jpeg_decompress_struct *dinfo,
+                   struct jpeg_compress_struct *cinfo,
+                   float dpi) {
+    
+    jpeg_saved_marker_ptr mrk;
+    
+    int write_marker;
+
+    mrk=dinfo->marker_list;
+    while (mrk)
+    {
+        write_marker=0;
+        
+        /* check for markers to save... */
+        
+        if (mrk->marker == JPEG_COM)
+            write_marker++;
+        
+        if (mrk->marker == IPTC_JPEG_MARKER)
+            write_marker++;
+        
+        if (mrk->marker == EXIF_JPEG_MARKER &&
+                !memcmp(mrk->data,EXIF_IDENT_STRING,EXIF_IDENT_STRING_SIZE))
+            write_marker++;
+        
+        if (mrk->marker == ICC_JPEG_MARKER &&
+                !memcmp(mrk->data,ICC_IDENT_STRING,ICC_IDENT_STRING_SIZE))
+            write_marker++;
+        
+        if (mrk->marker == XMP_JPEG_MARKER &&
+                !memcmp(mrk->data,XMP_IDENT_STRING,XMP_IDENT_STRING_SIZE))
+            write_marker++;
+        
+        /* libjpeg emits some markers automatically so skip these to avoid duplicates... */
+        
+        if ( mrk->marker == JPEG_APP0 && mrk->data_length >= 14 &&
+            mrk->data[0] == 0x4a &&
+            mrk->data[1] == 0x46 &&
+            mrk->data[2] == 0x49 &&
+            mrk->data[3] == 0x46 &&
+            mrk->data[4] == 0x00 ) {
+            
+            mrk->data[7]  = 0x01; /*  density_unit */
+            
+            UINT16 X_density = (UINT16)dpi;
+            UINT16 Y_density = (UINT16)dpi;
+            
+            memcpy(&mrk->data[ 8], &X_density, sizeof(X_density));
+            memcpy(&mrk->data[10], &Y_density, sizeof(Y_density));
+            
+            write_marker++;
+        }
+
+        if ( mrk->marker == JPEG_APP0+14 && mrk->data_length >= 12 &&
+                mrk->data[0] == 0x41 &&
+                mrk->data[1] == 0x64 &&
+                mrk->data[2] == 0x6f &&
+                mrk->data[3] == 0x62 &&
+            mrk->data[4] == 0x65 ) {
+            
+            write_marker++;
+        }
+            
+        if (write_marker)
+            jpeg_write_marker(cinfo,mrk->marker,mrk->data,mrk->data_length);
+        
+        mrk=mrk->next;
+    }
+}
+
+#define FREE_LINE_BUF(buf,lines)  {                \
+  int j;                            \
+  for (j=0;j<lines;j++) free(buf[j]);                \
+  free(buf);                            \
+  buf=NULL;                            \
+}
+
 void Set_image_DPI(PA_PluginParameters params) {
 
     PA_ObjectRef returnValue = PA_CreateObject();
@@ -1685,10 +1949,329 @@ void Set_image_DPI(PA_PluginParameters params) {
                     
                     if(is_image_format(&type, "image/jpeg")) {
                         
+                        struct jpeg_decompress_struct dinfo;
+                        struct jpeg_compress_struct cinfo;
+                        struct my_error_mgr jcerr, jderr;
+                        
+                        jvirt_barray_ptr *coef_arrays = NULL;
+                        JSAMPARRAY buf = NULL;
+                                                
+                        /* initialize decompression object */
+                        dinfo.err = jpeg_std_error(&jderr.pub);
+                        jpeg_create_decompress(&dinfo);
+                        jderr.pub.error_exit=my_error_exit;
+                        jderr.pub.output_message=my_output_message;
+                        jderr.jump_set = 0;
+                        
+                        /* initialize compression object */
+                        cinfo.err = jpeg_std_error(&jcerr.pub);
+                        jpeg_create_compress(&cinfo);
+                        jcerr.pub.error_exit=my_error_exit;
+                        jcerr.pub.output_message=my_output_message;
+                        jcerr.jump_set = 0;
+                        
+                        if (setjmp(jderr.setjmp_buffer))
+                        {
+                            /* error handler for decompress */
+                            jpeg_abort_decompress(&dinfo);
+
+                            jderr.jump_set=0;
+                        } else {
+                            jderr.jump_set=1;
+                        }
+                        
+                        /* prepare to decompress */
+                        jpeg_save_markers(&dinfo, JPEG_COM, 0xffff);
+                        for (int j=0;j<=15;j++)
+                            jpeg_save_markers(&dinfo, JPEG_APP0+j, 0xffff);
+                        jpeg_mem_src(&dinfo, (unsigned char *)ptr, len);
+                        jpeg_read_header(&dinfo, _true);
+                        
+                        jpeg_start_decompress(&dinfo);
+                        
+                        coef_arrays = jpeg_read_coefficients(&dinfo);
+                        
+                        if(!coef_arrays) {
+                            
+                            buf = (JSAMPARRAY)malloc(sizeof(JSAMPROW)*dinfo.output_height);
+                            for (int j=0;j<dinfo.output_height;j++) {
+                                buf[j]=(JSAMPROW)malloc(sizeof(JSAMPLE)*dinfo.output_width*dinfo.out_color_components);
+                            }
+                            while (dinfo.output_scanline < dinfo.output_height) {
+                                jpeg_read_scanlines(&dinfo,&buf[dinfo.output_scanline], dinfo.output_height-dinfo.output_scanline);
+                            }
+                        }
+                        
+                        if (setjmp(jcerr.setjmp_buffer))
+                        {
+                            /* error handler for compress failures */
+                            jpeg_abort_compress(&cinfo);
+                            jpeg_abort_decompress(&dinfo);
+                            
+                            jcerr.jump_set=0;
+                        } else {
+                            jcerr.jump_set=1;
+                        }
+                        
+                        size_t outbuffersize = len + 32768;
+                        unsigned char *outbuffer = (unsigned char *)malloc(outbuffersize);
+                        
+                        if(outbuffer) {
+                            
+                            jpeg_memory_dest(&cinfo, &outbuffer, &outbuffersize, 65536);
+                            
+                            if(coef_arrays) {
+                                jpeg_copy_critical_parameters(&dinfo, &cinfo);
+                                jpeg_simple_progression(&cinfo);
+                                cinfo.optimize_coding = _true;
+                            }else{
+                                cinfo.in_color_space=dinfo.out_color_space;
+                                cinfo.input_components=dinfo.output_components;
+                                cinfo.image_width=dinfo.image_width;
+                                cinfo.image_height=dinfo.image_height;
+                                jpeg_set_defaults(&cinfo);
+                                jpeg_set_quality(&cinfo, 100, _true);
+                                jpeg_simple_progression(&cinfo);
+                                cinfo.optimize_coding = _true;
+                                jpeg_start_compress(&cinfo,_true);
+                            }
+
+                            write_markers(&dinfo,&cinfo, dpi);
+                            
+                            if(coef_arrays) {
+                                jpeg_write_coefficients(&cinfo, coef_arrays);
+                            }else{
+                                while (cinfo.next_scanline < cinfo.image_height)
+                                {
+                                    jpeg_write_scanlines(&cinfo,&buf[cinfo.next_scanline], dinfo.output_height);
+                                }
+                            }
+                            
+                            jpeg_finish_decompress(&dinfo);
+                            
+                            if(!coef_arrays) {
+                                
+                                jpeg_finish_compress(&cinfo);
+                                FREE_LINE_BUF(buf,dinfo.output_height);
+                                
+                            }
+                            
+                            jpeg_destroy_decompress(&dinfo);
+                            jpeg_destroy_compress(&cinfo);
+                            
+                            PA_Picture p = PA_CreatePicture((void *)outbuffer, (PA_long32)outbuffersize);
+                            
+                            ob_set_p(format, L"image", p);
+                            ob_set_b(returnValue, L"success", true);
+                            
+                            free(outbuffer);
+                        }
                     }
                         
                     if(is_image_format(&type, "image/png")) {
                         
+                        png_structp png_ptr_in = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+                        if (png_ptr_in) {
+                            png_infop info_ptr_in = png_create_info_struct(png_ptr_in);
+                            if (!info_ptr_in) {
+                                png_destroy_read_struct(&png_ptr_in, NULL, NULL);
+                            }else {
+                                if (setjmp(png_jmpbuf(png_ptr_in)) != 0) {
+                                    // Ok we are here because of the setjmp.
+                                    png_destroy_read_struct(&png_ptr_in, &info_ptr_in, NULL);
+                                }else {
+                                    const unsigned int png_transforms =
+                                    PNG_TRANSFORM_PACKING | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_STRIP_16;
+                                    
+                                    pa_handle_t pa_handle;
+                                    pa_handle.len = len;
+                                    pa_handle.ptr = (unsigned char *)ptr;
+                                    pa_handle.pos = 0;
+                                    
+                                    png_set_read_fn(png_ptr_in, (png_voidp)&pa_handle, read_data_fn);
+                                    png_read_png(png_ptr_in, info_ptr_in, png_transforms, NULL);
+                                    
+                                    png_structp png_ptr_out = png_create_write_struct (png_get_libpng_ver(NULL), NULL, NULL, NULL);
+                                    
+                                    if (png_ptr_out) {
+                                        png_infop info_ptr_out = png_create_info_struct (png_ptr_out);
+                                        if (!info_ptr_out) {
+                                          png_destroy_write_struct (&png_ptr_out, NULL);
+                                        }else{
+                                            if (setjmp (png_jmpbuf (png_ptr_out))) {
+                                              png_destroy_write_struct (&png_ptr_out, &info_ptr_out);
+                                            }else{
+
+                                                C_BLOB outPNG;
+                                                
+                                                png_set_write_fn(png_ptr_out, (png_voidp)&outPNG,
+                                                                 write_data_fn, output_flush_fn);
+                                                
+                                                //----------------[IHDR]
+                                                png_uint_32 width, height;
+                                                int bit_depth, color_type;
+                                                int interlace_method = 0;
+                                                int compression_method, filter_method;
+                                                if (png_get_IHDR(png_ptr_in, info_ptr_in,
+                                                                 &width, &height,
+                                                                 &bit_depth, &color_type,
+                                                                 &interlace_method,
+                                                                 &compression_method, &filter_method)) {
+                                                    png_set_IHDR (png_ptr_out, info_ptr_out,
+                                                                  width, height, bit_depth, color_type,
+                                                                  interlace_method,
+                                                                  compression_method,
+                                                                  filter_method);
+                                                }
+                                               
+                                                //----------------[bKGD]
+                                                png_color_16p background;
+                                                if (png_get_bKGD(png_ptr_in, info_ptr_in, &background)) {
+                                                    png_set_bKGD(png_ptr_out, info_ptr_out, background);
+                                                }
+                                                
+                                                //----------------[cHRM]
+                                                png_fixed_point white_x, white_y, red_x, red_y,
+                                                green_x, green_y, blue_x, blue_y;
+                                                if (png_get_cHRM_fixed(png_ptr_in, info_ptr_in,
+                                                                       &white_x, &white_y,
+                                                                       &red_x, &red_y,
+                                                                       &green_x, &green_y,
+                                                                       &blue_x,&blue_y)) {
+                                                    png_set_cHRM_fixed(png_ptr_out, info_ptr_out,
+                                                                       white_x, white_y,
+                                                                       red_x, red_y,
+                                                                       green_x, green_y,
+                                                                       blue_x, blue_y);
+                                                }
+
+                                                //----------------[gAMA]
+                                                png_fixed_point file_gamma;
+                                                if (png_get_gAMA_fixed(png_ptr_in, info_ptr_in, &file_gamma)) {
+                                                    png_set_gAMA_fixed(png_ptr_out, info_ptr_out, file_gamma);
+                                                }
+                                                
+                                                //----------------[sRGB]
+                                                int file_intent;
+                                                if (png_get_sRGB(png_ptr_in, info_ptr_in, &file_intent)) {
+                                                    png_set_sRGB(png_ptr_out, info_ptr_out, file_intent);
+                                                }
+                                                
+                                                //----------------[iCCP]
+                                                png_charp name;
+                                                png_bytep profile;
+                                                png_uint_32 proflen;
+                                                if(png_get_iCCP(png_ptr_in, info_ptr_in,
+                                                                                    (png_charpp)&name,
+                                                                                    (int *)&compression_method,
+                                                                                    (png_bytepp)&profile,
+                                                                                    (png_uint_32 *)&proflen)) {
+                                                        png_set_iCCP(png_ptr_out, info_ptr_out,
+                                                                     (png_const_charp)name,
+                                                                     (int)compression_method,
+                                                                     (png_const_bytep)profile,
+                                                                     (png_uint_32)proflen);
+                                                }
+                                                
+                                                //----------------[oFFs]
+                                                png_charp purpose, units;
+                                                png_charpp params;
+                                                png_int_32 X0, X1;
+                                                int type, nparams;
+                                                if (png_get_pCAL(png_ptr_in, info_ptr_in,
+                                                                 &purpose, &X0, &X1,
+                                                                 &type, &nparams, &units, &params)) {
+                                                    png_set_pCAL(png_ptr_out, info_ptr_out,
+                                                                 purpose, X0, X1,
+                                                                 type, nparams,
+                                                                 units, params);
+                                                }
+  
+                                                //----------------[pHYs]
+                                                png_uint_32 res_x, res_y;
+                                                int unit_type;
+                                                if (dpi > 0) {
+                                                    unit_type = PNG_RESOLUTION_METER;
+                                                    res_x = res_y =
+                                                    (png_uint_32) ((dpi / .0254 + 0.5));
+                                                    png_set_pHYs(png_ptr_out, info_ptr_out, res_x, res_y, unit_type);
+                                                }
+
+                                                //----------------[hIST]
+                                                png_uint_16p hist;
+                                                if (png_get_hIST(png_ptr_in, info_ptr_in, &hist)) {
+                                                        png_set_hIST(png_ptr_out, info_ptr_out, hist);
+                                                }
+                                                
+                                                //----------------[tRNS]
+                                                png_bytep trans;
+                                                int num_trans;
+                                                png_color_16p trans_values;
+                                                if (png_get_tRNS(png_ptr_in, info_ptr_in,
+                                                                 &trans, &num_trans, &trans_values)) {
+                                                    png_set_tRNS(png_ptr_out, info_ptr_out, trans, num_trans, trans_values);
+                                                }
+                                                
+                                                //----------------[PLTE]
+                                                int num_palette = 0;
+                                                png_colorp palette;
+                                                if (png_get_PLTE(png_ptr_in, info_ptr_in, &palette, &num_palette)) {
+                                                    png_set_PLTE(png_ptr_out, info_ptr_out, palette, num_palette);
+                                                }
+                                                
+                                                //----------------[sBIT]
+                                                png_color_8p sig_bit;
+                                                if (png_get_sBIT(png_ptr_in, info_ptr_in, &sig_bit)) {
+                                                    png_set_sBIT(png_ptr_out, info_ptr_out, sig_bit);
+                                                }
+                                                
+                                                //----------------[sCAL]
+                                                int unit;
+                                                double scal_width, scal_height;
+                                                if (png_get_sCAL(png_ptr_in, info_ptr_in, &unit, &scal_width,
+                                                     &scal_height)) {
+                                                    png_set_sCAL(png_ptr_out, info_ptr_out, unit, scal_width, scal_height);
+                                                }
+
+                                                //----------------[sPLT]
+                                                png_sPLT_tp entries;
+                                                int num_entries = (int) png_get_sPLT(png_ptr_in, info_ptr_in, &entries);
+                                                if (num_entries) {
+                                                    png_set_sPLT(png_ptr_out, info_ptr_out, entries, num_entries);
+                                                }
+
+                                                //----------------[tEXt/zTXt/iTXt]
+                                                png_textp text_ptr;
+                                                int num_text = 0;
+                                                if (png_get_text(png_ptr_in, info_ptr_in, &text_ptr, &num_text) > 0) {
+                                                    png_set_text(png_ptr_out, info_ptr_out, text_ptr, num_text);
+                                                }
+
+                                                //----------------[tIME]
+                                                png_timep mod_time;
+                                                if (png_get_tIME(png_ptr_in, info_ptr_in, &mod_time)) {
+                                                    png_set_tIME(png_ptr_out, info_ptr_out, mod_time);
+                                                }
+                                                
+                                                png_write_info (png_ptr_out, info_ptr_out);
+                                                
+                                                png_bytep* row_pointers = png_get_rows(png_ptr_in, info_ptr_in);
+                                                png_write_image (png_ptr_out, row_pointers);
+                                                
+                                                png_write_end (png_ptr_out, info_ptr_out);
+                                                png_destroy_write_struct (&png_ptr_out, &info_ptr_out);
+                                                
+                                                PA_Picture p = PA_CreatePicture((void *)outPNG.getBytesPtr(), (PA_long32)outPNG.getBytesLength());
+                                                
+                                                ob_set_p(format, L"image", p);
+                                                ob_set_b(returnValue, L"success", true);
+                                            }
+                                        }
+                                    }
+                                    png_destroy_read_struct(&png_ptr_in, &info_ptr_in, NULL);
+                                }
+                            }
+                        }
                     }
                             
                     if(is_image_format(&type, "image/bmp")) {
@@ -1756,6 +2339,7 @@ void Set_image_DPI(PA_PluginParameters params) {
                             TIFFClose(tiff);
                         }
                     }
+                    
                     PA_Variable v = PA_CreateVariable(eVK_Object);
                     PA_SetObjectVariable(&v, format);
                     PA_SetCollectionElement(formats, PA_GetCollectionLength(formats), v);

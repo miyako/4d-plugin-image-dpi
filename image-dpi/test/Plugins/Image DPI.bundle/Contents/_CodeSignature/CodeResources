@@ -8,7 +8,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			sHrprpAzz5qn9wqujtkge6P/rwQ=
+			RjGMrHv7YPcaWCSL3J4EPKfGYrY=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -31,7 +31,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			4LHI7PgOF6c6du0BDjw2yoKgl1c3w6vZsvmQgb2C1EA=
+			YsP6Xj77A06Lbc93RiYAMOnQMotTACS26P30uI/bQc8=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -47,42 +47,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			ZCCEqtPmUM+2iJDxTvuZrd5mchV7dH5Z4RZvNF7YQT0=
+			rikYgrn4kp5DBFLIL0vtGBFoM2h8Jb/gzX1Mj7FoZ4U=
 			</data>
 		</dict>
 		<key>Windows64/Image DPI.4DX</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			i+0JK2H4a340AdjKRZctVUrPqxfpMou+xuHdt16lS/o=
-			</data>
-		</dict>
-		<key>Windows64/Image DPI.exp</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			rpC94vue1UDTq5hiN6WXnkRT3JP1FkSTZs39rdNHqlc=
-			</data>
-		</dict>
-		<key>Windows64/Image DPI.iobj</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			lOhPZTu97GaJLJnPibMgLFLlp+wm+zt9kWkGje66Qx0=
-			</data>
-		</dict>
-		<key>Windows64/Image DPI.ipdb</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			r9eWIbJGUGpToTf1/apBPSAgbSsmzsATK9uH7l93G28=
-			</data>
-		</dict>
-		<key>Windows64/Image DPI.lib</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			ISXvY+VnspDcVITdtSaXZqBS73yA+9pBaoQhRAKPFe0=
+			YK1H95a9J2QF3RN0pDvb4qqEq8EXqmPcx9wiV2QqXLw=
 			</data>
 		</dict>
 		<key>manifest.json</key>

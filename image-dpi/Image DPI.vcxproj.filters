@@ -7,6 +7,7 @@
     <ClCompile Include="4DPlugin-Image-DPI.cpp" />
     <ClCompile Include="support\4DPlugin-JSON.cpp" />
     <ClCompile Include="4D Plugin API\Classes\C_TEXT.cpp" />
+    <ClCompile Include="4D Plugin API\Classes\C_BLOB.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="4D Plugin API\4DPluginAPI.h">
@@ -28,6 +29,7 @@
     <ClInclude Include="support\4DPlugin-JSON.h" />
     <ClInclude Include="4D Plugin API\Classes\C_TEXT.h" />
     <ClInclude Include="4D Plugin API\Classes\C_TYPES.h" />
+    <ClInclude Include="4D Plugin API\Classes\C_BLOB.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="4D Plugin API">
